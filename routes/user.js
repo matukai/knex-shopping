@@ -31,7 +31,7 @@ router.post('/register', (req, res) => {
     .then(result => {
       // if email exists
       if (result.rows.length > 0) {
-        throw new Error('email exists')
+        throw new Error('email exists');
       } else {
         return result;
       }
@@ -50,15 +50,35 @@ router.post('/register', (req, res) => {
     })
 })
 
-
-// .post('/login', (req, res) => {
-//   let email = req.body.email;
-//   let password = req.body.password;
-//   knex.raw(`SELECT * from users WHERE users.email = ?`, [email, password])
-//   .then((result) => {
-//     console.log(result);
-//   })
-// })
+router.post('/login', (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  if(!(email || password)) {
+    return res.status(400).json({
+      message: 'must enter valid email & password'
+    })
+  }
+  email = email.toLowerCase();
+  return knex.raw(`SELECT users.email, users.password FROM users WHERE users.email = ?`, [email])
+    .then((result) => {
+      if (!(result.rows.length)) {
+        throw new Error('email not found');
+      }
+      return result.rows[0];
+    })
+    .then(user => {
+      if (password !== user.password) {
+        throw new Error('incorrect login credentials')
+      } else {
+        res.json(user)
+      }
+    })
+    .catch(err => {
+      return res.status(400).json({
+        message: err.message
+      })
+    })
+})
 
 
 
