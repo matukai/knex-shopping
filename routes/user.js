@@ -5,7 +5,7 @@ const knex = require('../knex/knex');
 
 
 router.get('/:user_id', (req, res) => {
-  let id = req.params.user_id
+  let id = req.params.user_id;
   return knex.raw('SELECT * FROM users WHERE id = ?', [id])
     .then(result => {
       res.json(result.rows);
