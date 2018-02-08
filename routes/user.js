@@ -8,7 +8,7 @@ router.get('/:user_id', (req, res) => {
   let id = req.params.user_id
   return knex.raw('SELECT * FROM users WHERE id = ?', [id])
     .then(result => {
-      res.json(result);
+      res.json(result.rows);
     })
     .catch(err => {
       return res.status(400).json({
@@ -16,6 +16,7 @@ router.get('/:user_id', (req, res) => {
       });
     })
 })
+
 
 router.post('/register', (req, res) => {
   let email = req.body.email;
@@ -37,8 +38,7 @@ router.post('/register', (req, res) => {
       }
     })
     .then(result => {
-      return knex.raw(`INSERT INTO users (email, password) VALUES (?,?)
-  RETURNING *`, [email, password]);
+      return knex.raw(`INSERT INTO users (email, password) VALUES (?,?) RETURNING * `, [email, password]);
     })
     .then(result => {
       res.json(result.rows[0]);
@@ -53,7 +53,7 @@ router.post('/register', (req, res) => {
 router.post('/login', (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  if(!(email || password)) {
+  if (!(email || password)) {
     return res.status(400).json({
       message: 'must enter valid email & password'
     })
@@ -79,6 +79,70 @@ router.post('/login', (req, res) => {
       })
     })
 })
+
+router.put('/:user_id/forgot-password', (req, res) => {
+  let id = req.params.user_id;
+  let password = req.body.password;
+  //console.log(id);
+  if (password.length === 0) {
+    return res.status(400).json({
+      message: 'no password inputed'
+    })
+  }
+  //RETURNING *   returns what you just updated. otherwise it will be updated it but it will not return a row, your row will be empty
+  return knex.raw('UPDATE users SET password = ? WHERE id = ? RETURNING *', [password, id])
+    .then(result => {
+      console.log(result.rows.length)
+      if (result.rows.length) {
+        return result
+      } 
+      else {
+        throw new Error('user id not found')
+      }
+    })
+    .then(result => {
+      res.status(200).json({
+        message: 'New password created!'
+      })
+    })
+    .catch(err => {
+      return res.status(400).json({
+        message: err.message
+      })
+    })
+})
+
+router.delete('/:user_id', (req, res) => {
+  let id = req.params.user_id;
+  //console.log(id)
+  return knex.raw('SELECT * FROM users WHERE users.id = ?', [id])
+  .then(result => {
+    //console.log(result.rows.length)
+    if(result.rows.length){
+      return result;
+    } else {
+      throw new Error('User ID not found');
+    }
+    })
+    .then(result => {
+      res.status(200).json({
+        message: `User id: ${id} sucessfully deleted`
+      })
+      return knex.raw('DELETE FROM users WHERE users.id = ?', [id])
+    })
+    .catch(err => {
+      return res.status(400).json({
+        message: err.message
+      })
+    })
+  })
+
+
+
+
+
+
+
 
 
 

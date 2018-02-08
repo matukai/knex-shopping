@@ -9,14 +9,16 @@ module.exports = {
       user : 'knexadmin',
       password : 'password',
       database : 'knexdb',
-      charset: 'utf8'
+      charset: 'utf8',
+    
     },
     migrations: {
       directory: __dirname + '/knex/migrations',
     },
     seeds: {
       directory: __dirname + '/knex/seeds'
-    }
+    },
+    debug:true
   },
 
   staging: {
